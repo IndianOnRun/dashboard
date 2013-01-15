@@ -2,6 +2,7 @@ var express = require('express')
   , app = express()
   , routes = require('./routes')
   , user = require('./routes/user')
+  , dashboard = require('./routes/dashboard')
   , http = require('http')
   , path = require('path')
   , port = 8080;
@@ -26,6 +27,7 @@ app.configure('development', function(){
 
 app.get('/', routes.index);
 app.get('/users', user.list);
+app.get('/dashboard', dashboard.show);
 
 var server = http.createServer(app);
 var io = require('socket.io').listen(server);
