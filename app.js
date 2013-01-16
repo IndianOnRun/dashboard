@@ -37,13 +37,15 @@ var io = require('socket.io').listen(server);
 
 // Configure socket
 io.configure(function () {
-    io.set('authorization', function (handshakeData, callback) {
-        if (handshakeData.xdomain) {
-            callback('Cross-domain connections are not allowed');
-        } else {
-            callback(null, true);
-        }
-    });
+  io.set("transports", ["xhr-polling"]); 
+  io.set("polling duration", 10); 
+  io.set('authorization', function (handshakeData, callback) {
+    if (handshakeData.xdomain) {
+      callback('Cross-domain connections are not allowed');
+    } else {
+      callback(null, true);
+    }
+  });
 });
 
 server.listen(app.get('port'), function(){
@@ -64,7 +66,7 @@ io.sockets.on('connection', function(socket){
 
   socket.on('pageView', function(device){
     client.incr('currentPageViews', function(err, reply){
-      console.log("Current page views: " + reply);
+      console.log("Incremented current page views: " + reply);
       io.sockets.emit('currentPageViews', { 'views': reply })
     });
     client.incr('totalPageViews', function(err, reply){
@@ -77,7 +79,7 @@ io.sockets.on('connection', function(socket){
   // this is decrementing even when the dashboard disconnects
   socket.on('disconnect', function(){
     client.decr("currentPageViews", function(err, reply){
-      console.log("Current page views: " + reply);
+      console.log("Decremented current page views: " + reply);
       io.sockets.emit('currentPageViews', { 'views': reply })
     });
   });

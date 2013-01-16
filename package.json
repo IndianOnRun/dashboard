@@ -1,5 +1,5 @@
 {
-  "name": "application-name",
+  "name": "node-dashboard",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -12,5 +12,9 @@
     "redis": "~0.8.2",
     "connect-redis": "~1.4.5",
     "hiredis": "~0.1.14"
+  },
+  "engines": {
+    "node": "~0.8.14",
+    "npm": "~1.1.65"
   }
 }
