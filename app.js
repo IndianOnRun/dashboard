@@ -17,6 +17,13 @@ if (process.env.REDISTOGO_URL) {
   var client = redis.createClient();
 };
 
+// Reset Redis counts
+client.del("currentPageViews", function(err, reply){
+  console.log("Reset Current Page Views to: " + reply);
+});
+client.del("totalPageViews", function(err, reply){
+  console.log("Reset Total Page Views to: " + reply);
+});
 
 // Config app
 var app = express();
@@ -63,33 +70,51 @@ server.listen(app.get('port'), function(){
 
 // Socket connections
 io.sockets.on('connection', function(socket){
-
   client.get('currentPageViews', function(err, reply){
     console.log("Current page views: " + reply);
     io.sockets.emit('currentPageViews', { 'views': reply })
   });
+  
   client.get('totalPageViews', function(err, reply){
     console.log("Total page views: " + reply);
     io.sockets.emit('totalPageViews', { 'views': reply })
   });
 
+  // Unique event for index sockets
   socket.on('pageView', function(device){
+    console.log("New socket: " + socket.id);
+
     client.incr('currentPageViews', function(err, reply){
-      console.log("Incremented current page views: " + reply);
-      io.sockets.emit('currentPageViews', { 'views': reply })
+      console.log("Current page views: " + reply);
+      io.sockets.emit('currentPageViews', { 'views': reply });
     });
+
     client.incr('totalPageViews', function(err, reply){
       console.log("Total page views: " + reply);
-      io.sockets.emit('totalPageViews', { 'views': reply })
+      io.sockets.emit('totalPageViews', { 'views': reply });
     });
-    console.log(device.name)
+
+    client.hset('devices', socket.id, device.name, function(err, reply){
+      console.log("Added " + device.name + " to devices");
+    });
   });
 
-  // this is decrementing even when the dashboard disconnects
+  // If device present in devices hash,
+  // removes device from devices and  
+  // decrements current page views
   socket.on('disconnect', function(){
-    client.decr("currentPageViews", function(err, reply){
-      console.log("Decremented current page views: " + reply);
-      io.sockets.emit('currentPageViews', { 'views': reply })
+    console.log("Socket " + socket.id + " disconnected");
+
+    client.hdel('devices', socket.id, function(err, reply){
+      console.log("Reply on device disconnect was: " + reply);
+      console.log("Removed " + socket.id + " from devices");
+
+      if (reply != 0){
+        client.decr("currentPageViews", function(err, views){
+          console.log("Decremented current page views to " + views);
+          io.sockets.emit('currentPageViews', { 'views': views });
+        });
+      }
     });
   });
 });
