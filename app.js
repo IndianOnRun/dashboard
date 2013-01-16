@@ -52,23 +52,29 @@ server.listen(app.get('port'), function(){
 
 // Socket connections
 io.sockets.on('connection', function(socket){
-  socket.on('connect', function(){
-    client.incr('totalPageViews', function(err, reply){
-      console.log("Total page views: " + reply);
-      io.sockets.emit('totalPageViews', { 'views': reply })
-    });
 
+  client.get('currentPageViews', function(err, reply){
+    console.log("Current page views: " + reply);
+    io.sockets.emit('currentPageViews', { 'views': reply })
+  });
+  client.get('totalPageViews', function(err, reply){
+    console.log("Total page views: " + reply);
+    io.sockets.emit('totalPageViews', { 'views': reply })
+  });
+
+  socket.on('pageView', function(device){
     client.incr('currentPageViews', function(err, reply){
       console.log("Current page views: " + reply);
       io.sockets.emit('currentPageViews', { 'views': reply })
     });
+    client.incr('totalPageViews', function(err, reply){
+      console.log("Total page views: " + reply);
+      io.sockets.emit('totalPageViews', { 'views': reply })
+    });
+    console.log(device.name)
   });
 
-  socket.on('message', function(message){
-    console.log("Received message: " + message);
-    io.sockets.emit('pageview', { 'url': message });
-  });
-
+  // this is decrementing even when the dashboard disconnects
   socket.on('disconnect', function(){
     client.decr("currentPageViews", function(err, reply){
       console.log("Current page views: " + reply);
