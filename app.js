@@ -24,6 +24,9 @@ client.del("currentPageViews", function(err, reply){
 client.del("totalPageViews", function(err, reply){
   console.log("Reset Total Page Views to: " + reply);
 });
+client.del("devices", function(err, reply){
+  console.log("Reset Total Page Views to: " + reply);
+});
 
 // Config app
 var app = express();
@@ -78,6 +81,22 @@ io.sockets.on('connection', function(socket){
   client.get('totalPageViews', function(err, reply){
     console.log("Total page views: " + reply);
     io.sockets.emit('totalPageViews', { 'views': reply })
+  });
+
+  client.hvals('devices', function(err, reply){
+    console.log("ALL PAGE VIEWS: " + reply);
+    var types = {};
+    function addToDevices(element){
+      if (types[element] != undefined){
+        types[element] += 1
+      } else { 
+        types[element] = 1
+      };
+    };
+    reply.forEach(addToDevices);
+    var devices = JSON.stringify(types);
+    io.sockets.emit('newDevice', { 'types': devices })
+    console.log("DEVICES ARE: "+ devices);
   });
 
   // Unique event for index sockets
