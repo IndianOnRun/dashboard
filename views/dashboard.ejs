@@ -8,6 +8,8 @@
   </head>
   <body>
     <h1><%= title %></h1>
+    <div id="totalPageViews"></div>
+    <div id="currentPageViews"></div>
     <ul id="pageViews"></ul>
     <script>
       var socket = io.connect('http://localhost'); 
@@ -16,6 +18,14 @@
           socket.on('pageview', function (msg) {
               $('#pageViews').append('<li>' + msg.url + '</li>');
           });
+
+        socket.on('totalPageViews', function(data){
+          $('#totalPageViews').html('<h1>Total Page Views: ' + data.views + '</h1>')
+        });
+
+        socket.on('currentPageViews', function(data){
+          $('#currentPageViews').html('<h1>Current Page Views: ' + data.views + '</h1>')
+        });
       });
     </script>
     </script>

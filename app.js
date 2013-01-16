@@ -1,5 +1,7 @@
 var express = require('express')
   , app = express()
+  , redis = require('redis')
+  , client = redis.createClient()
   , routes = require('./routes')
   // , user = require('./routes/user')
   , dashboard = require('./routes/dashboard')
@@ -7,8 +9,8 @@ var express = require('express')
   , path = require('path')
   , port = 8080;
 
+// Config app
 var app = express();
-
 app.configure(function(){
   app.set('port', process.env.PORT || port);
   app.set('views', __dirname + '/views');
@@ -25,6 +27,7 @@ app.configure('development', function(){
   app.use(express.errorHandler());
 });
 
+// Routes
 app.get('/', routes.index);
 // app.get('/users', user.list);
 app.get('/dashboard', dashboard.show);
@@ -32,6 +35,7 @@ app.get('/dashboard', dashboard.show);
 var server = http.createServer(app);
 var io = require('socket.io').listen(server);
 
+// Configure socket
 io.configure(function () {
     io.set('authorization', function (handshakeData, callback) {
         if (handshakeData.xdomain) {
@@ -46,10 +50,38 @@ server.listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
 });
 
+// Socket connections
 io.sockets.on('connection', function(socket){
+  socket.on('connect', function(){
+    client.incr('totalPageViews', function(err, reply){
+      console.log("Total page views: " + reply);
+      io.sockets.emit('totalPageViews', { 'views': reply })
+    });
+
+    client.incr('currentPageViews', function(err, reply){
+      console.log("Current page views: " + reply);
+      io.sockets.emit('currentPageViews', { 'views': reply })
+    });
+  });
+
   socket.on('message', function(message){
     console.log("Received message: " + message);
     io.sockets.emit('pageview', { 'url': message });
   });
-  // console.log('Hello world!');
+
+  socket.on('disconnect', function(){
+    client.decr("currentPageViews", function(err, reply){
+      console.log("Current page views: " + reply);
+      io.sockets.emit('currentPageViews', { 'views': reply })
+    });
+  });
 });
+
+
+
+
+
+
+
+
+
