@@ -16,10 +16,14 @@
     <div id="currentPageViews"></div>
     <ul id="pageViews"></ul>
     <div id="devices"></div>
-    <div id="easy-as-pie-chart"></div>
+    <div id="pie_chart"></div>
     <script>
       var socket = io.connect(); 
+      
       socket.on('connect', function () {
+        var streakerDataAdded = d3.range();
+        var devices
+
         socket.on('totalPageViews', function(data){
           $('#totalPageViews').html('<h1>Total Page Views: ' + data.views + '</h1>')
         });
@@ -29,8 +33,9 @@
         });
 
         socket.on('newDevice', function(data){
-          var device = data.types
-          var devices = jQuery.parseJSON(data.types);
+          // var device = data.types
+          devices = jQuery.parseJSON(data.types);
+
           function countProperties(obj) {
             var count = 0;
             for(var prop in obj) {
@@ -40,22 +45,13 @@
 
             return count;
           };
-          // console.log(devices);
-          // console.log(device);
-          // console.log(device.MacIntel);
-          // console.log(device['MacIntel']);
-          // console.log(device[0]);
-          // console.log(countProperties(devices));
-          // console.log(devices[0]);
-          // console.log(devices.count);
-          // console.log(devices.MacIntel);
-          // console.log(devices['MacIntel']);
 
-          var streakerDa = d3.range();
+          // var streakerDataAdded = d3.range();
+
           for (device in devices){
-            streakerDa.push({
+            streakerDataAdded.push({
               octetTotalCount: devices[device],
-              port: device
+              type: device
             });
           };
 
@@ -78,7 +74,7 @@
           });
 
           //D3 helper function to create colors from an ordinal scale
-          var color = d3.scale.category20();
+          var color = d3.scale.category20c();
 
           //D3 helper function to draw arcs, populates parameter "d" in path object
           var arc = d3.svg.arc()
@@ -88,25 +84,10 @@
             .outerRadius(r);
 
           ///////////////////////////////////////////////////////////
-          // GENERATE FAKE DATA /////////////////////////////////////
-          ///////////////////////////////////////////////////////////
-
-          var arrayRange = 1000; //range of potential values for each item
-          var arraySize;
-          var streakerDataAdded;
-
-          function fillArray() {
-            return {
-              port: "hello",
-              octetTotalCount: Math.ceil(Math.random()*(arrayRange))
-            };
-          }
-
-          ///////////////////////////////////////////////////////////
           // CREATE VIS & GROUPS ////////////////////////////////////
           ///////////////////////////////////////////////////////////
 
-          var vis = d3.select("#easy-as-pie-chart").append("svg:svg")
+          var vis = d3.select("#pie_chart").append("svg:svg")
             .attr("width", w)
             .attr("height", h);
 
@@ -144,21 +125,21 @@
             .attr("class", "label")
             .attr("dy", -15)
             .attr("text-anchor", "middle") // text-align: right
-            .text("TOTAL");
+            .text("VISITORS");
 
           //TOTAL TRAFFIC VALUE
           var totalValue = center_group.append("svg:text")
             .attr("class", "total")
             .attr("dy", 7)
             .attr("text-anchor", "middle") // text-align: right
-            .text("Waiting...");
+            .text("0");
 
           //UNITS LABEL
           var totalUnits = center_group.append("svg:text")
             .attr("class", "units")
             .attr("dy", 21)
             .attr("text-anchor", "middle") // text-align: right
-            .text("kb");
+            .text("Right now");
 
 
           ///////////////////////////////////////////////////////////
@@ -170,27 +151,15 @@
           // to run each time data is generated
           function update() {
 
-            arraySize = countProperties(devices);
-            streakerDataAdded = d3.range(arraySize).map(fillArray);
-            // var streakerDa = d3.range(arraySize).map(devices);
-
-          // for (device in devices){
-          //   port = device);
-          //   console.log(devices[device]);
-          // };
-
-
-            console.log(streakerDataAdded);
-            console.log(streakerDa);
-
+            // arraySize = countProperties(devices);
             oldPieData = filteredPieData;
             pieData = donut(streakerDataAdded);
 
             var totalOctets = 0;
             filteredPieData = pieData.filter(filterData);
             function filterData(element, index, array) {
-              element.name = streakerDa[index].port;
-              element.value = streakerDa[index].octetTotalCount;
+              element.name = streakerDataAdded[index].type;
+              element.value = streakerDataAdded[index].octetTotalCount;
               totalOctets += element.value;
               return (element.value > 0);
             }
@@ -199,10 +168,11 @@
 
               //REMOVE PLACEHOLDER CIRCLE
               arc_group.selectAll("circle").remove();
+              // remove
 
               totalValue.text(function(){
-                var kb = totalOctets/1024;
-                return kb.toFixed(1);
+                var kb = totalOctets;
+                return kb
                 //return bchart.label.abbreviated(totalOctets*8);
               });
 
