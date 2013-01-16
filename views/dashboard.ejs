@@ -50,9 +50,13 @@
           // console.log(devices.count);
           // console.log(devices.MacIntel);
           // console.log(devices['MacIntel']);
+
+          var streakerDa = d3.range();
           for (device in devices){
-            console.log(device);
-            console.log(devices[device]);
+            streakerDa.push({
+              octetTotalCount: devices[device],
+              port: device
+            });
           };
 
           var w = 450;
@@ -90,18 +94,6 @@
           var arrayRange = 1000; //range of potential values for each item
           var arraySize;
           var streakerDataAdded;
-
-
-          // function fillArray() {
-          //   for (device in devices){
-          //     var port = device);
-          //     console.log(devices[device]);
-          //     return {
-          //       port: device,
-          //       octetTotalCount: devices[device]
-          //     };
-          //   };
-
 
           function fillArray() {
             return {
@@ -180,18 +172,25 @@
 
             arraySize = countProperties(devices);
             streakerDataAdded = d3.range(arraySize).map(fillArray);
+            // var streakerDa = d3.range(arraySize).map(devices);
+
+          // for (device in devices){
+          //   port = device);
+          //   console.log(devices[device]);
+          // };
+
 
             console.log(streakerDataAdded);
+            console.log(streakerDa);
 
             oldPieData = filteredPieData;
             pieData = donut(streakerDataAdded);
 
             var totalOctets = 0;
             filteredPieData = pieData.filter(filterData);
-            
             function filterData(element, index, array) {
-              element.name = streakerDataAdded[index].port;
-              element.value = streakerDataAdded[index].octetTotalCount;
+              element.name = streakerDa[index].port;
+              element.value = streakerDa[index].octetTotalCount;
               totalOctets += element.value;
               return (element.value > 0);
             }
