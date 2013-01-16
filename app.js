@@ -1,7 +1,7 @@
 var express = require('express')
   , app = express()
   , routes = require('./routes')
-  , user = require('./routes/user')
+  // , user = require('./routes/user')
   , dashboard = require('./routes/dashboard')
   , http = require('http')
   , path = require('path')
@@ -26,16 +26,30 @@ app.configure('development', function(){
 });
 
 app.get('/', routes.index);
-app.get('/users', user.list);
+// app.get('/users', user.list);
 app.get('/dashboard', dashboard.show);
 
 var server = http.createServer(app);
 var io = require('socket.io').listen(server);
+
+io.configure(function () {
+    io.set('authorization', function (handshakeData, callback) {
+        if (handshakeData.xdomain) {
+            callback('Cross-domain connections are not allowed');
+        } else {
+            callback(null, true);
+        }
+    });
+});
 
 server.listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
 });
 
 io.sockets.on('connection', function(socket){
-  console.log('Hello world!');
+  socket.on('message', function(message){
+    console.log("Received message: " + message);
+    io.sockets.emit('pageview', { 'url': message });
+  });
+  // console.log('Hello world!');
 });
