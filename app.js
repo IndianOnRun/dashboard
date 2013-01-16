@@ -1,13 +1,22 @@
 var express = require('express')
   , app = express()
-  , redis = require('redis')
-  , client = redis.createClient()
   , routes = require('./routes')
   // , user = require('./routes/user')
   , dashboard = require('./routes/dashboard')
   , http = require('http')
   , path = require('path')
   , port = 8080;
+
+if (process.env.REDISTOGO_URL) {
+  var rtg   = require("url").parse(process.env.REDISTOGO_URL);
+  var redis = require("redis");
+  var client = redis.createClient(rtg.port, rtg.hostname);
+  client.auth(rtg.auth.split(":")[1]); 
+} else {
+  var redis = require('redis');
+  var client = redis.createClient();
+};
+
 
 // Config app
 var app = express();
