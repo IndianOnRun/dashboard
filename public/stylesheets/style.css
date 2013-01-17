@@ -1,25 +1,96 @@
-body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+html { 
+  background: url(/images/blastoff.png) no-repeat center center fixed; 
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
 }
 
 a {
-  color: #00B7FF;
+  text-decoration: none;
+  color: #697072;
+}
+a:hover { 
+  color: #768083
 }
 
 body {
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  margin: auto;
-  position: relative;
-  width: 960px;
+  font-family: 'Open Sans', sans-serif;
+  color: white;
+}
+
+#title {
+  margin: 6% 0 0 6%;
+  font-size: 2em;
+}
+
+#dashboard {
+  font-weight: 100;
+  position: absolute;
+  margin-top: -45px;
+  margin-left: 3px;
+}
+
+h1 {
+  font-weight: 300;
+}
+
+h2 {
+  color: #282B2C;
+  font-weight: 300;
+  margin: 115px 0 0 65px;
+}
+
+text.total {
+  font-weight: 600;
+  font-size: 1.4em;
 }
 
 text {
-  font: 10px sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.totals {
+  font-size: 2.5em;
+  font-weight: 500;
 }
 
 form {
   position: absolute;
   right: 10px;
   top: 10px;
+}
+
+#header {
+  position: absolute;
+  font-size: 1.3em;
+  margin-left: 62px;
+  margin-top: 3px;
+}
+
+#totalPageViews {
+  position: absolute;
+  width: 500px;
+  z-index: 100;
+}
+
+#currentPageViews {
+  margin-top: 150px;
+  position: absolute;
+  z-index: 100;
+  width: 500px;
+}
+
+svg {
+  background-color: rgba(255, 255, 255, 0.6);
+  border-radius: 4px;
+}
+
+.centered {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  margin-top: -250px;
+  margin-left: -350px;
 }

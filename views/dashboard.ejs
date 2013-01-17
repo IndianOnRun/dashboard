@@ -3,20 +3,23 @@
   <head>
     <title><%= title %></title>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js"></script>    
     <script src="/socket.io/socket.io.js"></script>
     <script src="/javascripts/pie_chart.js"></script>
-    <!-- // <script type="text/javascript" src="/javascripts/pie_chart.js"></script> -->
-    <!-- // <script type="text/javascript" href="/javascripts/pie_chart.js"></script> -->
     <link rel='stylesheet' href='/stylesheets/style.css' />
+    <link href='http://fonts.googleapis.com/css?family=Vollkorn:400,700' rel='stylesheet' type='text/css'>
   </head>
   <body>
-    <h1><%= title %></h1>
-    <div id="totalPageViews"></div>
-    <div id="currentPageViews"></div>
-    <ul id="pageViews"></ul>
-    <div id="devices"></div>
-    <div id="pie_chart"></div>
+
+    <div class="centered">
+      <div id="header"><h1><%= title %></h1></div>
+      <div id="totalPageViews"></div>
+      <div class="centered" id="pie_chart"></div>
+      
+      <div id="currentPageViews"></div>
+      <ul id="pageViews"></ul>
+      <div id="devices"></div>
+    </div>
     <script>
       var socket = io.connect();
       var streakerDataAdded, devices;
@@ -26,15 +29,14 @@
         devices
 
         socket.on('totalPageViews', function(data){
-          $('#totalPageViews').html('<h1>Total Page Views: ' + data.views + '</h1>')
+          $('#totalPageViews').html('<h2><span class="totals">'+ data.views + '</span><br>Total Page Views</h2>')
         });
 
         socket.on('currentPageViews', function(data){
-          $('#currentPageViews').html('<h1>Current Page Views: ' + data.views + '</h1>')
+          $('#currentPageViews').html('<h2><span class="totals">'+ data.views + '</span><br>Current Page Views</h2>')
         });
 
         socket.on('newDevice', function(data){
-          // var device = data.types
           devices = jQuery.parseJSON(data.types);
           for (device in devices){
             streakerDataAdded.push({
@@ -44,6 +46,8 @@
           };
         });
 
+        // CHART MODIFIED FROM STEPHEN BOAK'S: 
+        // http://blog.stephenboak.com/2011/08/07/easy-as-a-pie.html
         function countProperties(obj) {
           var count = 0;
           for(var prop in obj) {
@@ -53,101 +57,87 @@
           return count;
         };
 
-        // var streakerDataAdded = d3.range();
-
-
-
-        var w = 450;
-        var h = 300;
-        var r = 100;
-        var ir = 45;
+        var w = 700;
+        var h = 500;
+        var r = 150;
+        var ir = 80;
         var textOffset = 14;
         var tweenDuration = 250;
 
-        //OBJECTS TO BE POPULATED WITH DATA LATER
+        // OBJECTS TO BE POPULATED WITH DATA LATER
         var lines, valueLabels, nameLabels;
         var pieData = [];    
         var oldPieData = [];
         var filteredPieData = [];
 
-        //D3 helper function to populate pie slice parameters from array data
+        // D3 helper function to populate pie slice parameters from array data
         var donut = d3.layout.pie().value(function(d){
           return d.octetTotalCount;
         });
 
-        //D3 helper function to create colors from an ordinal scale
+        // D3 helper function to create colors from an ordinal scale
         var color = d3.scale.category20c();
 
-        //D3 helper function to draw arcs, populates parameter "d" in path object
+        // D3 helper function to draw arcs, populates parameter "d" in path object
         var arc = d3.svg.arc()
           .startAngle(function(d){ return d.startAngle; })
           .endAngle(function(d){ return d.endAngle; })
           .innerRadius(ir)
           .outerRadius(r);
 
-        ///////////////////////////////////////////////////////////
-        // CREATE VIS & GROUPS ////////////////////////////////////
-        ///////////////////////////////////////////////////////////
-
+        // CREATE VIS & GROUPS 
         var vis = d3.select("#pie_chart").append("svg:svg")
           .attr("width", w)
           .attr("height", h);
 
-        //GROUP FOR ARCS/PATHS
+        // GROUP FOR ARCS/PATHS
         var arc_group = vis.append("svg:g")
           .attr("class", "arc")
-          .attr("transform", "translate(" + (w/2) + "," + (h/2) + ")");
+          .attr("transform", "translate(" + (w * 7/10) + "," + (h/2) + ")");
 
-        //GROUP FOR LABELS
+        // GROUP FOR LABELS
         var label_group = vis.append("svg:g")
           .attr("class", "label_group")
-          .attr("transform", "translate(" + (w/2) + "," + (h/2) + ")");
+          .attr("transform", "translate(" + (w * 7/10) + "," + (h/2) + ")");
 
-        //GROUP FOR CENTER TEXT  
+        // GROUP FOR CENTER TEXT  
         var center_group = vis.append("svg:g")
           .attr("class", "center_group")
-          .attr("transform", "translate(" + (w/2) + "," + (h/2) + ")");
+          .attr("transform", "translate(" + (w * 7/10) + "," + (h/2) + ")");
 
-        //PLACEHOLDER GRAY CIRCLE
+        // PLACEHOLDER GRAY CIRCLE
         var paths = arc_group.append("svg:circle")
-            .attr("fill", "#EFEFEF")
+            .attr("fill", "#A3A0A0")
             .attr("r", r);
 
-        ///////////////////////////////////////////////////////////
-        // CENTER TEXT ////////////////////////////////////////////
-        ///////////////////////////////////////////////////////////
-
+        // CENTER TEXT 
         //WHITE CIRCLE BEHIND LABELS
         var whiteCircle = center_group.append("svg:circle")
-          .attr("fill", "white")
+          .attr("fill", "rgba(255, 255, 255, 0.5)")
           .attr("r", ir);
 
-        // "TOTAL" LABEL
+        // "VISITORS" LABEL
         var totalLabel = center_group.append("svg:text")
           .attr("class", "label")
           .attr("dy", -15)
           .attr("text-anchor", "middle") // text-align: right
           .text("VISITORS");
 
-        //TOTAL TRAFFIC VALUE
+        // TOTAL TRAFFIC VALUE
         var totalValue = center_group.append("svg:text")
           .attr("class", "total")
           .attr("dy", 7)
           .attr("text-anchor", "middle") // text-align: right
           .text("0");
 
-        //UNITS LABEL
+        // "RIGHT NOW" LABEL
         var totalUnits = center_group.append("svg:text")
           .attr("class", "units")
           .attr("dy", 21)
           .attr("text-anchor", "middle") // text-align: right
           .text("Right now");
 
-
-        ///////////////////////////////////////////////////////////
-        // STREAKER CONNECTION ////////////////////////////////////
-        ///////////////////////////////////////////////////////////
-
+        // STREAKER CONNECTION
         var updateInterval = window.setInterval(update, 1500);
 
         // to run each time data is generated
@@ -260,9 +250,7 @@
               });
 
             valueLabels.transition().duration(tweenDuration).attrTween("transform", textTween);
-
             valueLabels.exit().remove();
-
 
             //DRAW LABELS WITH ENTITY NAMES
             nameLabels = label_group.selectAll("text.units").data(filteredPieData)
@@ -311,10 +299,7 @@
           }  
         }
 
-        ///////////////////////////////////////////////////////////
-        // FUNCTIONS //////////////////////////////////////////////
-        ///////////////////////////////////////////////////////////
-
+        // FUNCTIONS 
         // Interpolate the arcs in data space.
         function pieTween(d, i) {
           var s0;
